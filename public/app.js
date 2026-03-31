@@ -77,6 +77,30 @@ const App = (() => {
     } catch {}
   }
 
+  function playFlipSound() {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const duration = 0.12;
+      const bufSize  = Math.floor(ctx.sampleRate * duration);
+      const buf      = ctx.createBuffer(1, bufSize, ctx.sampleRate);
+      const data     = buf.getChannelData(0);
+      for (let i = 0; i < bufSize; i++) {
+        data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufSize, 1.5);
+      }
+      const src    = ctx.createBufferSource();
+      src.buffer   = buf;
+      const filter = ctx.createBiquadFilter();
+      filter.type  = 'bandpass';
+      filter.frequency.value = 3200;
+      filter.Q.value         = 0.8;
+      const gain = ctx.createGain();
+      gain.gain.setValueAtTime(0.22, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+      src.connect(filter); filter.connect(gain); gain.connect(ctx.destination);
+      src.start();
+    } catch {}
+  }
+
   function playWrongSound() {
     try {
       const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -512,27 +536,10 @@ const App = (() => {
         <button class="btn-got-it"  id="btn-correct">Got it ✓</button>
       </div>`;
 
-    // Flip on card click
-    el('card-scene').addEventListener('click', flipCard);
-    el('btn-speak').addEventListener('click', () => playPronunciation(card.character));
-  }
-
-  function flipCard() {
-    if (state.flipped) return;
-    state.flipped = true;
-
-    const card = state.session[state.cardIndex];
-
-    el('card-scene').classList.add('flipped');
-    el('flip-hint').style.display   = 'none';
-    el('review-btns').style.display = 'grid';
-
-    // Word example
+    // Pre-populate word example (hidden until flip)
     const ex = window.WORD_EXAMPLES && window.WORD_EXAMPLES[card.character];
     if (ex) {
-      const wrap = el('word-example-wrap');
-      wrap.style.display = '';
-      wrap.innerHTML = `
+      el('word-example-wrap').innerHTML = `
         <div class="word-example-card" id="word-example-btn" title="Hear word">
           <div class="word-example-emoji">${ex.emoji}</div>
           <div class="word-example-body">
@@ -545,8 +552,27 @@ const App = (() => {
       el('word-example-btn').addEventListener('click', () => playPronunciation(ex.word));
     }
 
+    el('card-scene').addEventListener('click', flipCard);
+    el('btn-speak').addEventListener('click', () => playPronunciation(card.character));
     el('btn-correct').addEventListener('click', () => submitReview('correct'));
     el('btn-wrong').addEventListener('click',   () => submitReview('wrong'));
+  }
+
+  function flipCard() {
+    state.flipped = !state.flipped;
+    playFlipSound();
+
+    if (state.flipped) {
+      el('card-scene').classList.add('flipped');
+      el('flip-hint').style.display        = 'none';
+      el('review-btns').style.display      = 'grid';
+      el('word-example-wrap').style.display = '';
+    } else {
+      el('card-scene').classList.remove('flipped');
+      el('flip-hint').style.display        = '';
+      el('review-btns').style.display      = 'none';
+      el('word-example-wrap').style.display = 'none';
+    }
   }
 
   async function submitReview(result) {
