@@ -90,6 +90,17 @@ app.post('/api/users', (req, res) => {
   }
 });
 
+app.patch('/api/users/:id', (req, res) => {
+  const name = (req.body.name || '').trim();
+  if (!name) return res.status(400).json({ error: 'Name is required' });
+  try {
+    db.prepare('UPDATE users SET name = ? WHERE id = ?').run(name, req.params.id);
+    res.json({ id: +req.params.id, name });
+  } catch {
+    res.status(409).json({ error: 'Name already taken' });
+  }
+});
+
 app.delete('/api/users/:id', (req, res) => {
   db.prepare('DELETE FROM users WHERE id = ?').run(req.params.id);
   res.json({ ok: true });

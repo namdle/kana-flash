@@ -144,6 +144,7 @@ const App = (() => {
             <div class="profile-avatar">${esc(u.name.charAt(0).toUpperCase())}</div>
             <div class="profile-name">${esc(u.name)}</div>
           </div>
+          <button class="profile-edit-btn" data-action="edit-user" data-id="${u.id}" data-name="${esc(u.name)}" title="Rename profile" aria-label="Rename profile"><i class="bi bi-pencil-fill"></i></button>
           <button class="profile-delete-btn" data-action="delete-user" data-id="${u.id}" data-name="${esc(u.name)}" title="Delete profile" aria-label="Delete profile">×</button>
         </div>
       </div>`).join('');
@@ -168,6 +169,8 @@ const App = (() => {
       navigate('#/menu');
     } else if (card.dataset.action === 'new-user') {
       showNewProfileModal();
+    } else if (card.dataset.action === 'edit-user') {
+      showEditProfileModal(+card.dataset.id, card.dataset.name);
     } else if (card.dataset.action === 'delete-user') {
       showConfirmModal({
         title: 'Delete Profile',
@@ -229,6 +232,57 @@ const App = (() => {
 
     document.getElementById('new-profile-name').addEventListener('keydown', e => {
       if (e.key === 'Enter') document.getElementById('create-profile-btn').click();
+    });
+  }
+
+  function showEditProfileModal(userId, currentName) {
+    const existing = document.getElementById('edit-profile-modal');
+    if (existing) existing.remove();
+
+    document.body.insertAdjacentHTML('beforeend', `
+      <div class="modal fade" id="edit-profile-modal" tabindex="-1" aria-modal="true" role="dialog">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content rounded-4 border-0">
+            <div class="modal-header border-0 pb-0">
+              <h5 class="modal-title fw-bold">Rename Profile</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body pt-2">
+              <input type="text" id="edit-profile-name" class="form-control form-control-lg rounded-3"
+                     value="${esc(currentName)}" maxlength="30" autocomplete="off" />
+              <div id="edit-profile-error" class="text-danger small mt-1" style="display:none"></div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+              <button type="button" class="btn btn-light rounded-3" data-bs-dismiss="modal">Cancel</button>
+              <button type="button" class="btn btn-primary rounded-3 px-4" id="save-profile-btn">Save</button>
+            </div>
+          </div>
+        </div>
+      </div>`);
+
+    const modal = new bootstrap.Modal(document.getElementById('edit-profile-modal'));
+    modal.show();
+
+    const input = document.getElementById('edit-profile-name');
+    setTimeout(() => { input?.focus(); input?.select(); }, 400);
+
+    document.getElementById('save-profile-btn').addEventListener('click', async () => {
+      const name = input.value.trim();
+      const errEl = document.getElementById('edit-profile-error');
+      if (!name) { errEl.textContent = 'Please enter a name'; errEl.style.display = ''; return; }
+      try {
+        await api('PATCH', `/api/users/${userId}`, { name });
+        if (state.user?.id === userId) state.user.name = name;
+        modal.hide();
+        renderProfiles();
+      } catch {
+        errEl.textContent = 'That name is already taken';
+        errEl.style.display = '';
+      }
+    });
+
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter') document.getElementById('save-profile-btn').click();
     });
   }
 
@@ -408,6 +462,14 @@ const App = (() => {
     }
   }
 
+  function highlightChar(word, char) {
+    const idx = word.indexOf(char);
+    if (idx === -1) return esc(word);
+    return esc(word.slice(0, idx))
+      + `<span class="char-highlight">${esc(char)}</span>`
+      + esc(word.slice(idx + char.length));
+  }
+
   function showCard() {
     const card = state.session[state.cardIndex];
     if (!card) { showAllDone(false); return; }
@@ -444,6 +506,7 @@ const App = (() => {
         </button>
         <p class="flip-hint flex-grow-1 text-center mb-0" id="flip-hint">Tap the card to flip</p>
       </div>
+      <div class="word-example-wrap" id="word-example-wrap" style="display:none"></div>
       <div class="review-btns mt-2" id="review-btns" style="display:none">
         <button class="btn-review"  id="btn-wrong">Need Review ✗</button>
         <button class="btn-got-it"  id="btn-correct">Got it ✓</button>
@@ -458,9 +521,29 @@ const App = (() => {
     if (state.flipped) return;
     state.flipped = true;
 
+    const card = state.session[state.cardIndex];
+
     el('card-scene').classList.add('flipped');
     el('flip-hint').style.display   = 'none';
     el('review-btns').style.display = 'grid';
+
+    // Word example
+    const ex = window.WORD_EXAMPLES && window.WORD_EXAMPLES[card.character];
+    if (ex) {
+      const wrap = el('word-example-wrap');
+      wrap.style.display = '';
+      wrap.innerHTML = `
+        <div class="word-example-card" id="word-example-btn" title="Hear word">
+          <div class="word-example-emoji">${ex.emoji}</div>
+          <div class="word-example-body">
+            <div class="word-kana">${highlightChar(ex.word, card.character)}</div>
+            <div class="word-romaji">${esc(ex.romaji)}</div>
+            <div class="word-english">${esc(ex.english)}</div>
+          </div>
+          <i class="bi bi-volume-up-fill word-speak-icon"></i>
+        </div>`;
+      el('word-example-btn').addEventListener('click', () => playPronunciation(ex.word));
+    }
 
     el('btn-correct').addEventListener('click', () => submitReview('correct'));
     el('btn-wrong').addEventListener('click',   () => submitReview('wrong'));
