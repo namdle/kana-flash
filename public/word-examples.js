@@ -1,7 +1,7 @@
 /* Word examples for every kana character.
    Format: character → { word, romaji, english, emoji }
    The studied character is highlighted wherever it appears in 'word'. */
-const WORD_EXAMPLES = {
+var WORD_EXAMPLES = {
   // ── HIRAGANA BASIC ──────────────────────────────────────────
   'あ': { word: 'あお',       romaji: 'ao',         english: 'blue',           emoji: '💙' },
   'い': { word: 'いぬ',       romaji: 'inu',        english: 'dog',            emoji: '🐶' },
