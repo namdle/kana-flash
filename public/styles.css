@@ -295,6 +295,30 @@ body {
   letter-spacing: 0.08em;
 }
 
+.card-below-row {
+  max-width: 420px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.btn-speak {
+  background: none;
+  border: none;
+  color: var(--gray);
+  font-size: 1.4rem;
+  padding: 0.3rem 0.5rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s;
+  -webkit-tap-highlight-color: transparent;
+  flex-shrink: 0;
+}
+
+.btn-speak:hover {
+  color: var(--blue);
+  background: var(--blue-light);
+}
+
 .flip-hint {
   font-size: 0.8rem;
   color: var(--gray);

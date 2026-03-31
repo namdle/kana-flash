@@ -52,6 +52,45 @@ const App = (() => {
     return arr;
   }
 
+  // ── Audio ──────────────────────────────────────────────────
+  function playPronunciation(character) {
+    if (!window.speechSynthesis) return;
+    window.speechSynthesis.cancel();
+    const utter = new SpeechSynthesisUtterance(character);
+    utter.lang = 'ja-JP';
+    utter.rate = 0.85;
+    window.speechSynthesis.speak(utter);
+  }
+
+  function playCorrectSound() {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      [[523.25, 0], [659.25, 0.11], [783.99, 0.22]].forEach(([freq, delay]) => {
+        const osc = ctx.createOscillator(), gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.type = 'sine'; osc.frequency.value = freq;
+        const t = ctx.currentTime + delay;
+        gain.gain.setValueAtTime(0.28, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.22);
+        osc.start(t); osc.stop(t + 0.22);
+      });
+    } catch {}
+  }
+
+  function playWrongSound() {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = ctx.createOscillator(), gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(300, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(140, ctx.currentTime + 0.32);
+      gain.gain.setValueAtTime(0.2, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.32);
+      osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.32);
+    } catch {}
+  }
+
   // ── DOM helpers ────────────────────────────────────────────
   function el(id)          { return document.getElementById(id); }
   function esc(s)          { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
@@ -399,14 +438,20 @@ const App = (() => {
           </div>
         </div>
       </div>
-      <p class="flip-hint" id="flip-hint">Tap the card to flip</p>
-      <div class="review-btns mt-3" id="review-btns" style="display:none">
+      <div class="d-flex align-items-center mt-2 mb-1 card-below-row">
+        <button class="btn-speak" id="btn-speak" title="Hear pronunciation" aria-label="Hear pronunciation">
+          <i class="bi bi-volume-up-fill"></i>
+        </button>
+        <p class="flip-hint flex-grow-1 text-center mb-0" id="flip-hint">Tap the card to flip</p>
+      </div>
+      <div class="review-btns mt-2" id="review-btns" style="display:none">
         <button class="btn-review"  id="btn-wrong">Need Review ✗</button>
         <button class="btn-got-it"  id="btn-correct">Got it ✓</button>
       </div>`;
 
     // Flip on card click
     el('card-scene').addEventListener('click', flipCard);
+    el('btn-speak').addEventListener('click', () => playPronunciation(card.character));
   }
 
   function flipCard() {
@@ -428,8 +473,8 @@ const App = (() => {
     el('btn-correct').disabled = true;
     el('btn-wrong').disabled   = true;
 
-    if (result === 'correct') state.stats.correct++;
-    else                      state.stats.wrong++;
+    if (result === 'correct') { state.stats.correct++; playCorrectSound(); }
+    else                      { state.stats.wrong++;   playWrongSound();   }
 
     try {
       await api('POST', `/api/users/${state.user.id}/review`, { card_id: card.id, result });
@@ -678,7 +723,8 @@ const App = (() => {
       if (!group.length) return '';
 
       const tiles = group.map(c => `
-        <div class="kana-tile bucket-${c.bucket}" title="${esc(c.romaji)} · ${esc(c.bucket)}">
+        <div class="kana-tile bucket-${c.bucket}" title="${esc(c.romaji)} · ${esc(c.bucket)}"
+             data-character="${esc(c.character)}" style="cursor:pointer">
           <span class="char kana-char">${esc(c.character)}</span>
           <span class="roma">${esc(c.romaji)}</span>
         </div>`).join('');
@@ -691,6 +737,11 @@ const App = (() => {
     }).join('');
 
     el('browse-content').innerHTML = sections || '<div class="empty-state">No cards found.</div>';
+
+    el('browse-content').addEventListener('click', e => {
+      const tile = e.target.closest('[data-character]');
+      if (tile) playPronunciation(tile.dataset.character);
+    });
   }
 
   // Public API (none needed — auto-starts on DOMContentLoaded)
