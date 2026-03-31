@@ -1,0 +1,494 @@
+/* ============================================================
+   Base
+   ============================================================ */
+
+:root {
+  --red:       #dc2626;
+  --red-light: #fee2e2;
+  --green:     #16a34a;
+  --green-light: #dcfce7;
+  --blue:      #2563eb;
+  --blue-light: #dbeafe;
+  --orange:    #ea580c;
+  --orange-light: #ffedd5;
+  --gray:      #6b7280;
+  --gray-light: #f3f4f6;
+  --card-radius: 1.25rem;
+  --shadow: 0 4px 24px rgba(0,0,0,0.10);
+}
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background: #f1f5f9;
+  min-height: 100vh;
+  color: #1e293b;
+}
+
+/* ============================================================
+   Typography
+   ============================================================ */
+
+.kana-char {
+  font-family: 'Noto Serif JP', 'Yu Mincho', 'Hiragino Mincho Pro', serif;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+/* ============================================================
+   Navbar / Header
+   ============================================================ */
+
+.app-header {
+  background: #fff;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 0.75rem 1rem;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.app-header .brand {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--red);
+  text-decoration: none;
+  letter-spacing: -0.02em;
+}
+
+.app-header .brand span {
+  color: #1e293b;
+}
+
+/* ============================================================
+   Profile Cards
+   ============================================================ */
+
+.profile-card {
+  background: #fff;
+  border-radius: var(--card-radius);
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.1s;
+  padding: 1.5rem 1rem;
+  text-align: center;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+}
+
+.profile-card:hover {
+  border-color: var(--red);
+  box-shadow: var(--shadow);
+  transform: translateY(-2px);
+}
+
+.profile-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--red-light);
+  color: var(--red);
+  font-size: 1.5rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 0.75rem;
+}
+
+.profile-name {
+  font-weight: 600;
+  font-size: 1rem;
+  color: #1e293b;
+  word-break: break-word;
+}
+
+.profile-delete-btn {
+  position: absolute;
+  top: 0.4rem;
+  right: 0.4rem;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: none;
+  background: #e2e8f0;
+  color: #64748b;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.15s, background 0.15s;
+  z-index: 1;
+}
+
+/* Always visible on touch devices; hover-reveal on desktop */
+@media (hover: none) {
+  .profile-delete-btn { opacity: 1; }
+}
+
+[style*="position:relative"]:hover .profile-delete-btn,
+[style*="position: relative"]:hover .profile-delete-btn {
+  opacity: 1;
+}
+
+.profile-delete-btn:hover {
+  background: var(--red);
+  color: #fff;
+}
+
+.add-profile-card {
+  background: transparent;
+  border: 2px dashed #cbd5e1;
+  border-radius: var(--card-radius);
+  cursor: pointer;
+  padding: 1.5rem 1rem;
+  text-align: center;
+  transition: border-color 0.15s, background 0.15s;
+  color: var(--gray);
+}
+
+.add-profile-card:hover {
+  border-color: var(--red);
+  background: var(--red-light);
+  color: var(--red);
+}
+
+/* ============================================================
+   Study Menu
+   ============================================================ */
+
+.menu-btn {
+  background: #fff;
+  border-radius: var(--card-radius);
+  border: 2px solid #e2e8f0;
+  padding: 1.5rem;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.1s;
+  text-decoration: none;
+  display: block;
+  color: #1e293b;
+}
+
+.menu-btn:hover {
+  border-color: var(--red);
+  box-shadow: var(--shadow);
+  transform: translateY(-2px);
+  color: var(--red);
+}
+
+.menu-btn .icon {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.menu-btn .label {
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.menu-btn .sublabel {
+  font-size: 0.8rem;
+  color: var(--gray);
+  margin-top: 0.25rem;
+}
+
+/* ============================================================
+   Flashcard
+   ============================================================ */
+
+.card-scene {
+  perspective: 1200px;
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
+  height: 260px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.card-flipper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-scene.flipped .card-flipper {
+  transform: rotateY(180deg);
+}
+
+.card-face {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border-radius: var(--card-radius);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow);
+}
+
+.card-front {
+  background: #fff;
+}
+
+.card-back {
+  background: #fff;
+  transform: rotateY(180deg);
+}
+
+.card-hint {
+  position: absolute;
+  top: 1rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gray);
+}
+
+.card-type-badge {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.5rem;
+  border-radius: 100px;
+}
+
+.badge-hiragana {
+  background: var(--blue-light);
+  color: var(--blue);
+}
+
+.badge-katakana {
+  background: var(--orange-light);
+  color: var(--orange);
+}
+
+.card-character {
+  font-size: clamp(5rem, 20vw, 7rem);
+  line-height: 1;
+}
+
+.card-romaji {
+  font-size: clamp(2rem, 8vw, 3rem);
+  font-weight: 700;
+  color: var(--red);
+  margin-bottom: 0.25rem;
+}
+
+.card-romaji-label {
+  font-size: 0.75rem;
+  color: var(--gray);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.flip-hint {
+  font-size: 0.8rem;
+  color: var(--gray);
+  text-align: center;
+  margin-top: 0.75rem;
+}
+
+/* ============================================================
+   Review Buttons
+   ============================================================ */
+
+.review-btns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+.btn-got-it {
+  background: var(--green);
+  color: #fff;
+  border: none;
+  border-radius: 0.875rem;
+  padding: 1rem;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn-got-it:hover { background: #15803d; transform: scale(1.02); }
+.btn-got-it:active { transform: scale(0.97); }
+
+.btn-review {
+  background: var(--red);
+  color: #fff;
+  border: none;
+  border-radius: 0.875rem;
+  padding: 1rem;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn-review:hover { background: #b91c1c; transform: scale(1.02); }
+.btn-review:active { transform: scale(0.97); }
+
+/* ============================================================
+   Progress bar
+   ============================================================ */
+
+.session-progress-bar {
+  height: 6px;
+  background: #e2e8f0;
+  border-radius: 100px;
+  overflow: hidden;
+}
+
+.session-progress-fill {
+  height: 100%;
+  background: var(--red);
+  border-radius: 100px;
+  transition: width 0.4s ease;
+}
+
+/* ============================================================
+   Session summary
+   ============================================================ */
+
+.summary-ring {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  border: 8px solid var(--green-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1rem;
+  font-size: 2rem;
+}
+
+/* ============================================================
+   Stats
+   ============================================================ */
+
+.stat-card {
+  background: #fff;
+  border-radius: var(--card-radius);
+  padding: 1.25rem;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+  text-align: center;
+}
+
+.stat-number {
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--gray);
+  margin-top: 0.25rem;
+}
+
+/* ============================================================
+   Browse Grid
+   ============================================================ */
+
+.kana-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+  gap: 0.5rem;
+}
+
+.kana-tile {
+  background: #fff;
+  border-radius: 0.75rem;
+  padding: 0.5rem 0.25rem;
+  text-align: center;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.07);
+  border: 2px solid transparent;
+  cursor: default;
+}
+
+.kana-tile .char {
+  font-size: 1.6rem;
+  line-height: 1.2;
+  display: block;
+}
+
+.kana-tile .roma {
+  font-size: 0.62rem;
+  color: var(--gray);
+  display: block;
+}
+
+.kana-tile.bucket-new      { border-color: #e2e8f0; }
+.kana-tile.bucket-learning { border-color: var(--blue);   background: var(--blue-light); }
+.kana-tile.bucket-review   { border-color: var(--orange); background: var(--orange-light); }
+.kana-tile.bucket-learned  { border-color: var(--green);  background: var(--green-light); }
+
+/* ============================================================
+   Legend dots
+   ============================================================ */
+
+.legend-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 5px;
+}
+
+/* ============================================================
+   Utilities
+   ============================================================ */
+
+.page-container {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 1.25rem 1rem 5rem;
+}
+
+.section-title {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--gray);
+  margin-bottom: 0.75rem;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--gray);
+}
+
+.empty-state .icon {
+  font-size: 3rem;
+  display: block;
+  margin-bottom: 1rem;
+}
+
+/* Responsive tweaks */
+@media (max-width: 480px) {
+  .card-scene { height: 220px; }
+  .review-btns { gap: 0.5rem; }
+  .btn-got-it, .btn-review { padding: 0.875rem; font-size: 0.95rem; }
+}

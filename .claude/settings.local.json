@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(make --version)",
+      "Bash(g++ --version)",
+      "Bash(npm info:*)",
+      "Bash(pkill -f \"node server.js\")",
+      "Bash(lsof -ti:3001)",
+      "Bash(xargs kill:*)",
+      "Bash(/dev/null rm:*)"
+    ]
+  }
+}

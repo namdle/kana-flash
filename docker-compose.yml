@@ -1,0 +1,14 @@
+version: "3.9"
+
+services:
+  kana-flash:
+    build: .
+    container_name: kana-flash
+    ports:
+      - "3000:3000"      # Change left side to use a different host port, e.g. "8080:3000"
+    volumes:
+      - ./data:/app/data # Persistent SQLite database
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
